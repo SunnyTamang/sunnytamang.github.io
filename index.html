@@ -12,8 +12,8 @@
     :root {
       --bg:     #111009;
       --text:   #ddd6c8;
-      --muted:  #6a6050;
-      --warm:   #a08868;
+      --muted:  #8a7e6e;
+      --warm:   #b89878;
       --accent: #b89a58;
       --line:   #232018;
     }
@@ -22,7 +22,7 @@
     [data-theme="tokyo"] {
       --bg:     #1a1b2e;
       --text:   #c0caf5;
-      --muted:  #565f89;
+      --muted:  #7480b0;
       --warm:   #7aa2f7;
       --accent: #7dcfff;
       --line:   #24253a;
@@ -32,7 +32,7 @@
     [data-theme="dracula"] {
       --bg:     #282a36;
       --text:   #f8f8f2;
-      --muted:  #6272a4;
+      --muted:  #8290b8;
       --warm:   #bd93f9;
       --accent: #ff79c6;
       --line:   #44475a;
@@ -42,7 +42,7 @@
     [data-theme="catppuccin"] {
       --bg:     #1e1e2e;
       --text:   #cdd6f4;
-      --muted:  #6c7086;
+      --muted:  #9399b2;
       --warm:   #cba6f7;
       --accent: #a6e3a1;
       --line:   #313244;
@@ -138,7 +138,7 @@
     .hero-role {
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 24px;
+      color: var(--warm); margin-bottom: 24px;
       opacity: 0; animation: up 0.6s ease 0.1s forwards;
     }
     h1 {
@@ -162,8 +162,8 @@
     }
     .hl-primary { color: var(--accent); }
     .hl-primary:hover { color: var(--text); }
-    .hl-muted { color: var(--muted); }
-    .hl-muted:hover { color: var(--warm); }
+    .hl-muted { color: var(--warm); }
+    .hl-muted:hover { color: var(--text); }
 
     /* SECTIONS */
     section { padding: 80px 0; border-top: 1px solid var(--line); }
