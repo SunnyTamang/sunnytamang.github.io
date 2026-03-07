@@ -263,6 +263,68 @@
       .skill-row { grid-template-columns: 90px 1fr; }
       .nav-links { display: none; }
     }
+
+    /* - company glow dots - */
+    /* .glow-dots-pinned {
+      position: absolute;
+      bottom: 40px; left: 0; right: 0;
+      display: flex; justify-content: center;
+      z-index: 2;
+      opacity: 0; animation: up 0.6s ease 0.75s forwards;
+    }
+    .glow-dots { display: flex; gap: 0; align-items: center; } */
+    /* .glow-dots-pinned removed entirely */
+    /* .glow-dots { display: flex; gap: 0; align-items: center; opacity: 0; animation: up 0.6s ease 0.75s forwards; }
+    .glow-item { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0 18px; }
+    .glow-dot  { width: 8px; height: 8px; border-radius: 50%; }
+    .glow-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .glow-year { font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+    .glow-sep  { width: 48px; height: 1px; flex-shrink: 0; margin-bottom: 20px; }
+    @keyframes glowpulse {
+      0%, 100% { box-shadow: 0 0 6px var(--accent), 0 0 12px rgba(184,154,88,0.2); }
+      50%       { box-shadow: 0 0 12px var(--accent), 0 0 24px rgba(184,154,88,0.4); }
+    } */
+    .glow-dots {
+      display: flex; gap: 28px; align-items: center;
+    }
+    .glow-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .glow-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      border: 1px solid var(--muted); background: var(--bg);
+    }
+    .glow-item.active .glow-dot {
+      background: var(--accent); border-color: var(--accent);
+      box-shadow: 0 0 8px var(--accent), 0 0 16px rgba(184,154,88,0.3);
+      animation: glowpulse 2.5s ease-in-out infinite;
+    }
+    .glow-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .glow-item.active .glow-label { color: var(--accent); }
+    .glow-year {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; color: var(--muted);
+    }
+    .glow-sep {
+      width: 32px; height: 1px;
+      background: var(--line);
+      margin-bottom: 20px; flex-shrink: 0;
+    }
+    .glow-sep.active {
+      background: var(--warm);
+      box-shadow: 0 0 6px var(--accent), 0 0 12px rgba(184,154,88,0.3);
+      animation: glowpulse 2.5s ease-in-out infinite;
+    }
+    @keyframes glowpulse {
+      0%, 100% { box-shadow: 0 0 6px var(--accent), 0 0 12px rgba(184,154,88,0.2); }
+      50%       { box-shadow: 0 0 12px var(--accent), 0 0 24px rgba(184,154,88,0.4); }
+    }
+
   </style>
 </head>
 <body>
@@ -291,6 +353,7 @@
     <div class="hero-inner">
       <div class="hero-role">Data Scientist · AI/ML Engineer · Responsible AI Specialist</div>
       <h1>AI with <i>intention.</i></h1>
+      <div id="glow-dots-container" style="margin-top:36px;margin-bottom:36px;"></div>
       <p class="hero-bio">9 years of building AI - predictive models, NLP, deep learning, and now GenAI. Getting it to work is just the start. Making it explainable, responsible, and scalable is the real work. Currently at Accenture.</p>
       <div class="hero-links">
         <a class="hl-primary" href="#projects">Projects</a>
@@ -298,6 +361,9 @@
       </div>
     </div>
   </div>
+  <!-- <div class="glow-dots-pinned">
+    <div id="glow-dots-container"></div>  JS fills this 
+  </div> -->
 </section>
 
 <section id="about">
@@ -456,6 +522,119 @@
     });
     try { localStorage.setItem('st-theme', t); } catch(e) {}
   }
+
+
+  // - Dynamic company dot JS
+  (function() {
+    // ↓ Only edit this array to add future companies
+    var companies = [
+      { name: 'TCS',       year: "'16–'22" },
+      { name: 'Wipro',     year: "'22–'25" },
+      { name: 'Accenture', year: "'25–now" },
+      
+    ];
+
+    var DIM    = [90, 80, 65];     // minimum brightness — dim but always readable
+    // var ACCENT = [184, 154, 88];   // #b89a58 — full glow
+    function getAccentRgb() {
+      var hex = getComputedStyle(document.documentElement)
+                  .getPropertyValue('--accent').trim().replace('#','');
+      return [
+        parseInt(hex.slice(0,2), 16),
+        parseInt(hex.slice(2,4), 16),
+        parseInt(hex.slice(4,6), 16)
+      ];
+    }
+    // called fresh every time renderDots() runs
+
+    // function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
+
+    // function interpolateColor(t) {
+    //   // t=0 → DIM (oldest company), t=1 → ACCENT (current company)
+    //   return 'rgb(' +
+    //     lerp(DIM[0], ACCENT[0], t) + ',' +
+    //     lerp(DIM[1], ACCENT[1], t) + ',' +
+    //     lerp(DIM[2], ACCENT[2], t) + ')';
+    // }
+    function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
+
+    function interpolateColor(t, ac) {
+      return 'rgb(' + lerp(DIM[0],ac[0],t) + ',' + lerp(DIM[1],ac[1],t) + ',' + lerp(DIM[2],ac[2],t) + ')';
+    }
+
+    // function renderDots() {
+    //   var container = document.getElementById('glow-dots-container');
+    //   if (!container) return;
+    //   var ac    = getAccentRgb();
+    //   var total = companies.length;
+    //   var html = '<div class="glow-dots">';
+
+    //   companies.forEach(function(c, i) {
+    //     var t      = total === 1 ? 1 : i / (total - 1); // 0 → 1
+    //     var col    = interpolateColor(t, ac);
+    //     var isLast = i === total - 1;
+
+    //     // dot + label + year
+    //     html += '<div class="glow-item">';
+    //     html += '<div class="glow-dot" style="'
+    //           + 'border:1px solid ' + col + ';'
+    //           + 'background:' + (isLast ? col : 'var(--bg)') + ';'
+    //           + (isLast ? 'box-shadow:0 0 8px ' + col + ',...;animation:glowpulse 2.5s...;' : '')
+    //           + '"></div>';
+    //     html += '<div class="glow-label" style="color:' + col + '">' + c.name + '</div>';
+    //     html += '<div class="glow-year"  style="color:' + col + '">' + c.year  + '</div>';
+    //     html += '</div>';
+
+    //     // separator line between items
+    //     if (i < total - 1) {
+    //       var st = (i + 0.5) / (total - 1); // midpoint brightness
+    //       var sc = interpolateColor(st);
+    //       html += '<div class="glow-sep" style="background:' + sc + ';..."></div>';
+    //     }
+    //   });
+
+    //   html += '</div>';
+    //   container.innerHTML = html; // ← builds all HTML from array
+    // }
+    function renderDots() {
+      var container = document.getElementById('glow-dots-container');
+      if (!container) return;
+      var ac    = getAccentRgb();
+      var total = companies.length;
+      var html  = '<div class="glow-dots">';
+      companies.forEach(function(c, i) {
+        var t      = total === 1 ? 1 : i / (total - 1);
+        var col    = interpolateColor(t, ac);
+        var isLast = i === total - 1;
+        html += '<div class="glow-item">';
+        html += '<div class="glow-dot" style="'
+              + 'border:1px solid ' + col + ';'
+              + 'background:' + (isLast ? col : 'var(--bg)') + ';'
+              + (isLast ? 'box-shadow:0 0 8px ' + col + ',0 0 16px rgba(' + ac.join(',') + ',0.3);animation:glowpulse 2.5s ease-in-out infinite;' : '')
+              + '"></div>';
+        html += '<div class="glow-label" style="color:' + col + '">' + c.name + '</div>';
+        html += '<div class="glow-year"  style="color:' + col + '">' + c.year  + '</div>';
+        html += '</div>';
+        if (i < total - 1) {
+          var st = (i + 0.5) / (total - 1);
+          var sc = interpolateColor(st, ac);
+          html += '<div class="glow-sep" style="background:' + sc + ';'
+                + (st > 0.5 ? 'box-shadow:0 0 4px ' + sc + ';' : '') + '"></div>';
+        }
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+    // re-render on theme change
+    new MutationObserver(function(mutations) {
+      mutations.forEach(function(m) {
+        if (m.attributeName === 'data-theme') renderDots();
+      });
+    }).observe(document.documentElement, { attributes: true });
+
+    renderDots();
+  })();
+  
   // -- Star constellation --
   (function() {
     var canvas = document.getElementById('star-canvas');
