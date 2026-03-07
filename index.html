@@ -287,9 +287,10 @@
       0%, 100% { box-shadow: 0 0 6px var(--accent), 0 0 12px rgba(184,154,88,0.2); }
       50%       { box-shadow: 0 0 12px var(--accent), 0 0 24px rgba(184,154,88,0.4); }
     } */
-    .glow-dots {
+    /* .glow-dots {
       display: flex; gap: 28px; align-items: center;
-    }
+    } */
+    .glow-dots { display: flex; gap: 0; align-items: center; opacity: 0; animation: up 0.6s ease 0.75s forwards; }
     .glow-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
     .glow-dot {
       width: 8px; height: 8px; border-radius: 50%;
