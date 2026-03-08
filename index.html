@@ -227,7 +227,15 @@
     .project.no-link::before { background: var(--line); }
     .project.open:hover { opacity: 0.7; }
     .project.no-link { opacity: 0.5; cursor: default; }
-    .proj-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    /* .proj-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; } */
+    .proj-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .proj-meta-chip {
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted); border: 1px solid var(--line); padding: 2px 10px;
+    }
+    .proj-meta-chip.co { border-color: var(--accent); color: var(--accent); }
+
     .proj-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 400; margin-bottom: 6px; }
     .proj-desc { font-size: 13px; color: var(--muted); max-width: 440px; line-height: 1.7; }
     .proj-arrow { color: var(--accent); font-size: 16px; padding-top: 4px; transition: transform 0.2s; }
@@ -424,7 +432,7 @@
       <div class="group-label">— Open Source</div>
       <a class="project open" href="https://github.com/SunnyTamang/pygitzen" target="_blank">
         <div>
-          <div class="proj-meta">Developer Tools</div>
+          <div class="proj-meta"><span class="proj-meta-chip">Developer Tools</span></div>
           <div class="proj-name">pygitzen</div>
           <div class="proj-desc">A python package to navigate and manage git repos with a TUI interface.</div>
         </div>
@@ -432,7 +440,7 @@
       </a>
       <a class="project open" href="https://github.com/SunnyTamang/pendulum.nvim" target="_blank">
         <div>
-          <div class="proj-meta">Developer Tools</div>
+          <div class="proj-meta"><span class="proj-meta-chip">Developer Tools</span></div>
           <div class="proj-name">Pendulum</div>
           <div class="proj-desc">A custom NeoVim plugin for time-based productive sessions within the terminal, integrating time management features into the NeoVim environment.</div>
         </div>
@@ -442,21 +450,21 @@
       <div class="group-label group-label--secondary">— Professional Work</div>
       <div class="project no-link">
         <div>
-          <div class="proj-meta">GenAI · Responsible AI · Accenture</div>
+          <div class="proj-meta"><span class="proj-meta-chip">GenAI</span><span class="proj-meta-chip">Responsible AI</span><span class="proj-meta-chip co">Accenture</span></div>
           <div class="proj-name">LLM Performance Feedback Summarizer</div>
           <div class="proj-desc">Productionised an LLM pipeline using Azure PromptFlow to automate year-end feedback summarisation for managers, with citation-aware generation and output validation for responsible AI adoption.</div>
         </div>
       </div>
       <div class="project no-link">
         <div>
-          <div class="proj-meta">GenAI · NLP · Wipro</div>
+          <div class="proj-meta"><span class="proj-meta-chip">GenAI</span><span class="proj-meta-chip">NLP</span><span class="proj-meta-chip co">Wipro</span></div>
           <div class="proj-name">GraphRAG Document Query System</div>
           <div class="proj-desc">Designed and deployed a document query system using GraphRAG, LLMs, and GraphDB - achieving a 5% improvement in agent-assist support efficiency.</div>
         </div>
       </div>
       <div class="project no-link">
         <div>
-          <div class="proj-meta">NLP · Pharma · Wipro</div>
+          <div class="proj-meta"><span class="proj-meta-chip">NLP</span><span class="proj-meta-chip">Pharma</span><span class="proj-meta-chip co">Wipro</span></div>
           <div class="proj-name">Pharmacovigilance NLP Pipeline</div>
           <div class="proj-desc">Led end-to-end development of a pharmacovigilance product with custom NER models for medical document classification and key label extraction from abstracts.</div>
         </div>
