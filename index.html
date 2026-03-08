@@ -208,8 +208,10 @@
     .group-label {
       font-family: 'JetBrains Mono', monospace;
       font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--muted); padding: 50px 0 20px 0; margin-bottom: 0;
+      color: var(--muted); padding: 20px 0 0 0; margin-bottom: 20px;
     }
+    .group-label--secondary { padding-top: 72px; }        
+    .group-label + .project { border-top: none; }          
     .project {
       display: grid; grid-template-columns: 1fr auto; gap: 16px;
       border-top: 1px solid var(--line); padding: 20px 0 20px 16px;
@@ -437,7 +439,7 @@
         <div class="proj-arrow">&#8594;</div>
       </a>
 
-      <div class="group-label">— Professional Work</div>
+      <div class="group-label group-label--secondary">— Professional Work</div>
       <div class="project no-link">
         <div>
           <div class="proj-meta">GenAI · Responsible AI · Accenture</div>
