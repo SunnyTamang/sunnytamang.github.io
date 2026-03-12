@@ -336,6 +336,16 @@
       50%       { box-shadow: 0 0 12px var(--accent), 0 0 24px rgba(184,154,88,0.4); }
     }
 
+    /* ── Word Cloud Nodes ── */
+    #wc-node-canvas { width: 100%; height: 320px; display: block; }
+    .wc-tooltip {
+      position: fixed; font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--accent); background: var(--bg);
+      border: 1px solid var(--accent); padding: 4px 10px;
+      pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 200;
+    }
+
   </style>
 </head>
 <body>
@@ -486,6 +496,14 @@
       <a class="clink" href="resume.pdf" download>Resume / CV <span class="clink-arr">&#8595;</span></a>
     </div>
   </div>
+</section>
+
+<section id="wordcloud-nodes">
+  <div class="wrap">
+    <div class="sec-label reveal">Keywords</div>
+  </div>
+  <canvas id="wc-node-canvas"></canvas>
+  <div class="wc-tooltip" id="wc-tooltip"></div>
 </section>
 
 <footer>
@@ -756,6 +774,138 @@
     resize();
     init();
     tick();
+  })();
+
+  // ── Nodes word cloud ──
+  (function() {
+    var canvas  = document.getElementById('wc-node-canvas');
+    if (!canvas) return;
+    var ctx     = canvas.getContext('2d');
+    var tooltip = document.getElementById('wc-tooltip');
+    var nodes   = [];
+    var hoveredNode = null;
+    var mouse   = { x:-9999, y:-9999, active:false };
+    var MAGNET_RADIUS=180, MAGNET_FORCE=0.12, REPEL_RADIUS=50, REPEL_FORCE=0.6;
+
+    // ← THE KEY FIX: one palette per theme, one colour per word category
+    var THEME_PALETTES = {
+      earthy:     { ai:'#b89a58', lang:'#b89878', lib:'#9a8a6a', cloud:'#7a7060', role:'#6a6050' },
+      tokyo:      { ai:'#7dcfff', lang:'#7aa2f7', lib:'#565f89', cloud:'#414868', role:'#343a59' },
+      dracula:    { ai:'#ff79c6', lang:'#bd93f9', lib:'#8a84d4', cloud:'#6272a4', role:'#44475a' },
+      catppuccin: { ai:'#a6e3a1', lang:'#cba6f7', lib:'#89b4fa', cloud:'#585b70', role:'#45475a' }
+    };
+
+    function getTheme() { return htmlRoot.getAttribute('data-theme') || 'earthy'; }
+    function getPalette() { return THEME_PALETTES[getTheme()] || THEME_PALETTES.earthy; }
+    function hexToRgb(hex) {
+      hex = hex.replace('#','');
+      return [parseInt(hex.slice(0,2),16), parseInt(hex.slice(2,4),16), parseInt(hex.slice(4,6),16)];
+    }
+
+    var wcWords = [
+      {text:'GenAI',weight:9,cat:'ai'},{text:'LLM',weight:8,cat:'ai'},{text:'RAG',weight:8,cat:'ai'},
+      {text:'NLP',weight:9,cat:'ai'},{text:'GraphRAG',weight:7,cat:'ai'},{text:'Deep Learning',weight:7,cat:'ai'},
+      {text:'Machine Learning',weight:8,cat:'ai'},{text:'Responsible AI',weight:7,cat:'ai'},{text:'Agentic Workflows',weight:6,cat:'ai'},
+      {text:'Python',weight:9,cat:'lang'},{text:'SQL',weight:5,cat:'lang'},{text:'Bash',weight:4,cat:'lang'},
+      {text:'LangChain',weight:7,cat:'lib'},{text:'LlamaIndex',weight:6,cat:'lib'},{text:'DSPy',weight:5,cat:'lib'},
+      {text:'TensorFlow',weight:6,cat:'lib'},{text:'PyTorch',weight:6,cat:'lib'},{text:'Flask',weight:4,cat:'lib'},{text:'Django',weight:4,cat:'lib'},
+      {text:'Azure OpenAI',weight:7,cat:'cloud'},{text:'Azure AI Search',weight:6,cat:'cloud'},
+      {text:'PromptFlow',weight:5,cat:'cloud'},{text:'Docker',weight:5,cat:'cloud'},{text:'Git',weight:4,cat:'cloud'},
+      {text:'Data Scientist',weight:7,cat:'role'},{text:'AI Engineer',weight:7,cat:'role'},
+      {text:'Pharmacovigilance',weight:5,cat:'role'},{text:'NeoVim',weight:4,cat:'role'},{text:'TUI',weight:3,cat:'role'}
+    ];
+
+    function initNodes() {
+      var W=canvas.offsetWidth, H=canvas.offsetHeight;
+      canvas.width=W*devicePixelRatio; canvas.height=H*devicePixelRatio;
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+      var palette = getPalette();
+      nodes = [];
+      wcWords.slice().sort(function(a,b){return b.weight-a.weight;}).forEach(function(word){
+        var r=18+(word.weight-3)*7, col=palette[word.cat], rgb=hexToRgb(col);
+        var placed=false, attempts=0;
+        while (!placed && attempts<500) {
+          attempts++;
+          var x=r+Math.random()*(W-r*2), y=r+Math.random()*(H-r*2), ok=true;
+          for(var k=0;k<nodes.length;k++){var n=nodes[k];if(Math.sqrt((x-n.x)*(x-n.x)+(y-n.y)*(y-n.y))<r+n.r+6){ok=false;break;}}
+          if(ok){nodes.push({x,y,r,word:word.text,cat:word.cat,col,rgb,weight:word.weight,
+            vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3});placed=true;}
+        }
+      });
+    }
+
+    // ← Re-colours nodes on theme switch without reshuffling positions
+    function recolourNodes() {
+      var palette = getPalette();
+      nodes.forEach(function(n) { n.col=palette[n.cat]; n.rgb=hexToRgb(n.col); });
+    }
+
+    function drawNodes() {
+      var W=canvas.offsetWidth, H=canvas.offsetHeight;
+      ctx.clearRect(0,0,W,H);
+      nodes.forEach(function(n){
+        var isH=n===hoveredNode;
+        ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+        ctx.fillStyle='rgba('+n.rgb.join(',')+','+(isH?0.15:0.06)+')'; ctx.fill();
+        ctx.strokeStyle='rgba('+n.rgb.join(',')+','+(isH?0.9:0.3)+')';
+        ctx.lineWidth=isH?1.5:0.8; ctx.stroke();
+        if(isH){ctx.shadowColor=n.col;ctx.shadowBlur=12;ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+          ctx.strokeStyle=n.col;ctx.lineWidth=1;ctx.stroke();ctx.shadowBlur=0;}
+        var fs=Math.max(8,Math.min(n.r*0.45,13));
+        ctx.font='normal '+fs+'px "JetBrains Mono",monospace';
+        ctx.fillStyle=isH?n.col:'rgba('+n.rgb.join(',')+',0.8)';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        var ws=n.word.split(' ');
+        if(ws.length>1&&ctx.measureText(n.word).width>n.r*1.6){
+          ctx.fillText(ws[0],n.x,n.y-fs*0.6); ctx.fillText(ws.slice(1).join(' '),n.x,n.y+fs*0.6);
+        } else { ctx.fillText(n.word,n.x,n.y); }
+        ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+      });
+    }
+
+    function updateNodes() {
+      var W=canvas.offsetWidth, H=canvas.offsetHeight;
+      nodes.forEach(function(n){
+        if(mouse.active){
+          var dx=mouse.x-n.x, dy=mouse.y-n.y, d=Math.sqrt(dx*dx+dy*dy);
+          if(d<REPEL_RADIUS&&d>0){n.vx-=(dx/d)*REPEL_FORCE;n.vy-=(dy/d)*REPEL_FORCE;}
+          else if(d<MAGNET_RADIUS&&d>0){var s=(1-d/MAGNET_RADIUS)*MAGNET_FORCE;n.vx+=(dx/d)*s;n.vy+=(dy/d)*s;}
+        }
+        n.x+=n.vx; n.y+=n.vy;
+        if(n.x-n.r<0){n.x=n.r;n.vx*=-0.6;} if(n.x+n.r>W){n.x=W-n.r;n.vx*=-0.6;}
+        if(n.y-n.r<0){n.y=n.r;n.vy*=-0.6;} if(n.y+n.r>H){n.y=H-n.r;n.vy*=-0.6;}
+        nodes.forEach(function(o){if(o===n)return;
+          var dx=n.x-o.x,dy=n.y-o.y,d=Math.sqrt(dx*dx+dy*dy),minD=n.r+o.r+4;
+          if(d<minD&&d>0){var p=(minD-d)/minD*0.4;n.vx+=(dx/d)*p;n.vy+=(dy/d)*p;}
+        });
+        n.vx*=0.97; n.vy*=0.97;
+      });
+    }
+
+    function tick(){ updateNodes(); drawNodes(); requestAnimationFrame(tick); }
+
+    // ← Watches data-theme attribute, fires recolourNodes() on every theme switch
+    new MutationObserver(function(mutations){
+      mutations.forEach(function(m){
+        if(m.attributeName==='data-theme') recolourNodes();
+      });
+    }).observe(htmlRoot, {attributes:true});
+
+    canvas.addEventListener('mousemove',function(e){
+      var rect=canvas.getBoundingClientRect();
+      mouse.x=e.clientX-rect.left; mouse.y=e.clientY-rect.top; mouse.active=true;
+      hoveredNode=null;
+      for(var i=0;i<nodes.length;i++){var n=nodes[i];
+        if(Math.sqrt((mouse.x-n.x)*(mouse.x-n.x)+(mouse.y-n.y)*(mouse.y-n.y))<n.r){hoveredNode=n;break;}}
+      if(hoveredNode){tooltip.textContent=hoveredNode.cat.toUpperCase();
+        tooltip.style.left=(e.clientX+12)+'px';tooltip.style.top=(e.clientY-8)+'px';tooltip.style.opacity='1';canvas.style.cursor='pointer';}
+      else{tooltip.style.opacity='0';canvas.style.cursor='default';}
+    });
+    canvas.addEventListener('mouseleave',function(){
+      mouse.active=false; mouse.x=mouse.y=-9999; tooltip.style.opacity='0'; hoveredNode=null;
+    });
+    window.addEventListener('resize',function(){ initNodes(); });
+    initNodes(); tick();
   })();
 </script>
 </body>
