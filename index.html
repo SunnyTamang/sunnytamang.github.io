@@ -272,6 +272,29 @@
     .clink-arr { color: var(--muted); font-size: 15px; transition: transform 0.2s, color 0.2s; }
     .clink:hover .clink-arr { transform: translate(2px, -2px); color: var(--accent); }
 
+    /* SCROLL-TO-TOP */
+    .scroll-top {
+      position: fixed; bottom: 32px; right: 32px; z-index: 40;
+      width: 36px; height: 36px;
+      border: 1px solid var(--line); background: var(--bg);
+      color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 14px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s, border-color 0.2s, color 0.2s;
+    }
+    .scroll-top.visible { opacity: 1; pointer-events: auto; }
+    .scroll-top:hover   { border-color: var(--accent); color: var(--text); }
+    .scroll-top::before {
+      content: 'back to top';
+      position: absolute; right: calc(100% + 10px); bottom: 50%; transform: translateY(50%);
+      font-family: 'JetBrains Mono', monospace; font-size: 9px;
+      letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
+      color: var(--muted);
+      opacity: 0; transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .scroll-top:hover::before { opacity: 1; color: var(--accent); }
+
     /* FOOTER */
     footer { border-top: 1px solid var(--line); padding: 32px 0; }
     footer .wrap { display: flex; justify-content: space-between; }
@@ -530,6 +553,8 @@
     <span class="fn">© 2026 Sunny Tamang</span>
   </div>
 </footer>
+<button class="scroll-top" id="scroll-top" aria-label="Scroll to top">↑</button>
+
 <script>
   document.documentElement.classList.add('js');
 
@@ -953,6 +978,18 @@
     });
     window.addEventListener('resize',function(){ initNodes(); });
     initNodes(); tick();
+  })();
+
+  // Scroll-to-top button
+  (function() {
+    var btn  = document.getElementById('scroll-top');
+    var hero = document.getElementById('hero');
+    new IntersectionObserver(function(entries) {
+      btn.classList.toggle('visible', !entries[0].isIntersecting);
+    }, { threshold: 0 }).observe(hero);
+    btn.addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   })();
 </script>
 </body>
