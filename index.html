@@ -271,6 +271,20 @@
     .clink:hover { color: var(--text); }
     .clink-arr { color: var(--muted); font-size: 15px; transition: transform 0.2s, color 0.2s; }
     .clink:hover .clink-arr { transform: translate(2px, -2px); color: var(--accent); }
+    .clink--email { cursor: default; }
+    .clink--email:hover { color: var(--warm); }
+    .clink-email-actions { display: flex; align-items: center; gap: 14px; }
+    .clink-email-actions .clink-arr { text-decoration: none; }
+    .clink-email-actions .clink-arr:hover { transform: translate(2px, -2px); color: var(--accent); }
+    .copy-btn {
+      background: none; border: 1px solid var(--line); padding: 2px 10px;
+      font-family: 'JetBrains Mono', monospace; font-size: 9px;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .copy-btn:hover  { border-color: var(--accent); color: var(--accent); }
+    .copy-btn.copied { border-color: var(--accent); color: var(--accent); }
 
     /* SCROLL-TO-TOP */
     .scroll-top {
@@ -532,7 +546,15 @@
     <h2 class="reveal">Open to opportunities.</h2>
     <p class="reveal d1">Full-time roles and research collaborations - especially at the intersection of ML and real-world impact.</p>
     <div class="contact-links reveal d2">
-      <a class="clink" href="mailto:sunnysinghtamang@gmail.com">sunnysinghtamang@gmail.com <span class="clink-arr">&#8594;</span></a>
+      <div class="clink clink--email">
+        <span>sunnysinghtamang@gmail.com</span>
+        <div class="clink-email-actions">
+          <button class="copy-btn" id="copy-email" aria-label="Copy email address">
+            <span id="copy-btn-label">copy</span>
+          </button>
+          <a href="mailto:sunnysinghtamang@gmail.com" class="clink-arr" title="Open in mail client">&#8594;</a>
+        </div>
+      </div>
       <a class="clink" href="https://github.com/SunnyTamang" target="_blank">GitHub <span class="clink-arr">&#8594;</span></a>
       <a class="clink" href="https://linkedin.com/in/sunnytamang" target="_blank">LinkedIn <span class="clink-arr">&#8594;</span></a>
       <a class="clink" href="resume.pdf" download>Resume / CV <span class="clink-arr">&#8595;</span></a>
@@ -978,6 +1000,23 @@
     });
     window.addEventListener('resize',function(){ initNodes(); });
     initNodes(); tick();
+  })();
+
+  // Copy email button
+  (function() {
+    var btn   = document.getElementById('copy-email');
+    var label = document.getElementById('copy-btn-label');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      navigator.clipboard.writeText('sunnysinghtamang@gmail.com').then(function() {
+        label.textContent = 'copied!';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          label.textContent = 'copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    });
   })();
 
   // Scroll-to-top button
